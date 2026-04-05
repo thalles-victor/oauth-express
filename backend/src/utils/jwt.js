@@ -46,4 +46,28 @@ function generateJWT(payload, secret, expiresIn = 3600) {
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
-module.exports = { generateJWT };
+/**
+ * @param {string} token
+ * @param {string} secret
+ * @returns {Object} payload
+ */
+function verifyJWT(token, secret) {
+  const parts = token.split(".");
+  if (parts.length !== 3) throw new Error("invalid token format");
+
+  const [encodedHeader, encodedPayload, signature] = parts;
+
+  const expectedSignature = sign(`${encodedHeader}.${encodedPayload}`, secret);
+  if (signature !== expectedSignature) throw new Error("invalid signature");
+
+  const payload = JSON.parse(
+    Buffer.from(encodedPayload, "base64url").toString(),
+  );
+
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp && payload.exp < now) throw new Error("token expired");
+
+  return payload;
+}
+
+module.exports = { generateJWT, verifyJWT };

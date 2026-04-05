@@ -4,6 +4,7 @@ const {
   handleGoogleCallbackService,
   signUpService,
   signInService,
+  getMeService,
 } = require("./service");
 
 function getGoogleOAuthUrlController(_req, res) {
@@ -78,9 +79,19 @@ function signInController(req, res) {
   }
 }
 
+function getMeController(req, res) {
+  try {
+    const user = getMeService(req.user.sub);
+    return res.status(200).json(user);
+  } catch (err) {
+    return res.status(404).json({ message: err.message });
+  }
+}
+
 module.exports = {
   getGoogleOAuthUrlController,
   exchangeGoogleCodeController,
   signUpController,
   signInController,
+  getMeController,
 };

@@ -96,9 +96,20 @@ function signInService(email, password) {
   return token;
 }
 
+function getMeService(userId) {
+  const user = users.find((u) => u.id === userId);
+
+  if (!user) {
+    throw new Error("usuário não encontrado");
+  }
+
+  return { id: user.id, name: user.name, email: user.email };
+}
+
 module.exports = {
   buildGoogleOAuthUrlService,
   handleGoogleCallbackService,
   signUpService,
   signInService,
+  getMeService,
 };

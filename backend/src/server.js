@@ -5,7 +5,9 @@ const {
   exchangeGoogleCodeController,
   signUpController,
   signInController,
+  getMeController,
 } = require("./auth/controller");
+const { authMiddleware } = require("./utils/authmiddleware");
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.post("/auth/signin", signInController);
 
 app.get("/oauth/google/url", getGoogleOAuthUrlController);
 app.post("/oauth/google/exchange", exchangeGoogleCodeController);
+
+app.get("/auth/me", authMiddleware, getMeController);
 
 app.listen(3000, () => {
   console.log("Servidor is running");
