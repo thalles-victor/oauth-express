@@ -1,9 +1,42 @@
 "use client";
 
 import { useState } from "react";
+import { useSignIn, useSignUp } from "./hooks";
+
+const inputClass =
+  "rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-700 disabled:opacity-50";
 
 export default function Home() {
   const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const signIn = useSignIn();
+  const signUp = useSignUp();
+
+  const active = tab === "signin" ? signIn : signUp;
+  const isLoading = active.state.status === "loading";
+  const errorMessage =
+    active.state.status === "error" ? active.state.errorMessage : null;
+  const tabLabel = tab === "signin" ? "Entrar" : "Criar conta";
+  const submitLabel = isLoading ? "Aguarde..." : tabLabel;
+
+  function handleTabChange(next: "signin" | "signup") {
+    setTab(next);
+    setName("");
+    setEmail("");
+    setPassword("");
+  }
+
+  function handleSubmit(e: { preventDefault(): void }) {
+    e.preventDefault();
+    if (tab === "signin") {
+      signIn.submit(email, password);
+    } else {
+      signUp.submit(name, email, password);
+    }
+  }
 
   return (
     <div className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 py-16">
@@ -23,7 +56,7 @@ export default function Home() {
           {/* Tabs */}
           <div className="mb-6 flex rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800">
             <button
-              onClick={() => setTab("signin")}
+              onClick={() => handleTabChange("signin")}
               className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
                 tab === "signin"
                   ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50"
@@ -33,7 +66,7 @@ export default function Home() {
               Entrar
             </button>
             <button
-              onClick={() => setTab("signup")}
+              onClick={() => handleTabChange("signup")}
               className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
                 tab === "signup"
                   ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50"
@@ -45,50 +78,78 @@ export default function Home() {
           </div>
 
           {/* Form */}
-          <form className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {tab === "signup" && (
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="name" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                >
                   Nome
                 </label>
                 <input
                   id="name"
                   type="text"
                   placeholder="Seu nome completo"
-                  className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-700"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className={inputClass}
                 />
               </div>
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Email
               </label>
               <input
                 id="email"
                 type="email"
                 placeholder="voce@email.com"
-                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-700"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                required
+                className={inputClass}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Senha
               </label>
               <input
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-700"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+                className={inputClass}
               />
             </div>
 
+            {errorMessage && (
+              <p className="text-sm text-red-500 dark:text-red-400">
+                {errorMessage}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="mt-1 w-full rounded-lg bg-zinc-900 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              disabled={isLoading}
+              className="mt-1 w-full rounded-lg bg-zinc-900 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              {tab === "signin" ? "Entrar" : "Criar conta"}
+              {submitLabel}
             </button>
           </form>
 
@@ -102,7 +163,8 @@ export default function Home() {
           {/* Google OAuth */}
           <button
             type="button"
-            className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-zinc-200 bg-white py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            disabled={isLoading}
+            className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-zinc-200 bg-white py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
           >
             <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
               <path
